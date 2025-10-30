@@ -62,8 +62,7 @@ class AutoMigration:
                             conn, table_name, column, existing_columns[column.name]
                         )
 
-                # 2) DB엔 있는데 모델엔 없는 컬럼 → DROP (개발/테스트 환경만)
-                if settings.active_profile in ("local", "test"):
+                if settings.active_profile in ("local", "test", "production"):
                     protected_columns = {"id", "created_at", "updated_at"}
                     model_column_names = {c.name for c in table.columns}
                     for db_col in existing_columns.keys():

@@ -1,17 +1,12 @@
-"""
-애플리케이션 팩토리
-"""
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from config import settings
 from app.core.middleware import setup_exception_handlers
 from app.users.routers.router import router
 from app.core.auto_migration import auto_update_schema
-from app.users.models.user import User  # 모델 등록을 위해 임포트
+from app.base.base_response import BaseResponse
 
 
 def create_app() -> FastAPI:
-    """FastAPI 애플리케이션 생성"""
-    
     app = FastAPI(
         title="AdEdge Backend API",
         description=f"AdEdge Backend API - {settings.active_profile.upper()} Environment",
@@ -19,15 +14,9 @@ def create_app() -> FastAPI:
         version="1.0.0",
     )
     
-    # 예외 핸들러 설정
     setup_exception_handlers(app)
     
-    # 라우터 등록
     app.include_router(router)
-    
-    # 헬스 체크 엔드포인트
-    from fastapi import status
-    from app.base.base_response import BaseResponse
     
     @app.get("/actuator/health", response_model=BaseResponse[dict], status_code=status.HTTP_200_OK)
     async def health_check():

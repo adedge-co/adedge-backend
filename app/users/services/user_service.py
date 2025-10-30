@@ -1,7 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.users.models.user import User
-from app.users.schema.schemas import UserCreate, UserLogin, UserUpdate
+from app.users.schema.schemas import (
+    UserLogin,
+    PersonalSignupRequest,
+    CorporateSignupRequest,
+)
 from app.users.dependency.dependency import pwd_context
 from datetime import datetime, timedelta
 from jose import jwt
@@ -22,18 +26,28 @@ from app.core.exceptions import (
 
 class UserService:
     @staticmethod
-    async def create_user(user_data: UserCreate, db: AsyncSession) -> dict:
-        result = await db.execute(select(User).where(User.username == user_data.username))
+    async def create_personal_user(user_data: PersonalSignupRequest, db: AsyncSession) -> dict:
+        # user_id 중복 체크
+        result = await db.execute(select(User).where(User.user_id == user_data.user_id))
         existing_user = result.scalar_one_or_none()
         if existing_user:
             raise ConflictException("이미 등록된 사용자입니다.")
 
+        # 주민번호 중복 체크(선택: 필수로 받으므로 고유 보장)
+        result = await db.execute(select(User).where(User.resident_number == user_data.resident_number))
+        if result.scalar_one_or_none():
+            raise ConflictException("이미 등록된 주민번호입니다.")
+
         hashed_password = pwd_context.hash(user_data.password)
 
         new_user = User(
-            username=user_data.username,
-            email=user_data.email,
-            hashed_password=hashed_password
+            account_type="PERSONAL",
+            user_id=user_data.user_id,
+            hashed_password=hashed_password,
+            user_name=user_data.user_name,
+            resident_number=user_data.resident_number,
+            address=user_data.address,
+            phone_number=user_data.phone_number,
         )
 
         try:
@@ -45,14 +59,52 @@ class UserService:
             raise ServerException(f"사용자 생성 중 오류가 발생했습니다: {str(e)}")
 
         return {
-            "id": new_user.id,
-            "username": new_user.username,
-            "email": new_user.email
+            "user_seq": new_user.user_seq,
+            "user_id": new_user.user_id,
+            "account_type": new_user.account_type
+        }
+
+    @staticmethod
+    async def create_corporate_user(user_data: CorporateSignupRequest, db: AsyncSession) -> dict:
+        # user_id 중복 체크
+        result = await db.execute(select(User).where(User.user_id == user_data.user_id))
+        if result.scalar_one_or_none():
+            raise ConflictException("이미 등록된 사용자입니다.")
+
+        # 사업자번호 중복 체크
+        result = await db.execute(select(User).where(User.business_number == user_data.business_number))
+        if result.scalar_one_or_none():
+            raise ConflictException("이미 등록된 사업자번호입니다.")
+
+        hashed_password = pwd_context.hash(user_data.password)
+
+        new_user = User(
+            account_type="CORPORATE",
+            user_id=user_data.user_id,
+            hashed_password=hashed_password,
+            business_name=user_data.business_name,
+            business_number=user_data.business_number,
+            address=user_data.address,
+            phone_number=user_data.phone_number,
+        )
+
+        try:
+            db.add(new_user)
+            await db.commit()
+            await db.refresh(new_user)
+        except Exception as e:
+            await db.rollback()
+            raise ServerException(f"사용자 생성 중 오류가 발생했습니다: {str(e)}")
+
+        return {
+            "user_seq": new_user.user_seq,
+            "user_id": new_user.user_id,
+            "account_type": new_user.account_type
         }
 
     @staticmethod
     async def authenticate_user(login_data: UserLogin, db: AsyncSession) -> dict:
-        result = await db.execute(select(User).where(User.username == login_data.username))
+        result = await db.execute(select(User).where(User.user_id == login_data.user_id))
         user = result.scalar_one_or_none()
 
         if not user or not pwd_context.verify(login_data.password, user.hashed_password):
@@ -76,46 +128,4 @@ class UserService:
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer"
-        }
-
-    @staticmethod
-    async def update_user(user_id: int, update_data: UserUpdate, db: AsyncSession) -> dict:
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-
-        if not user:
-            raise NotFoundException("사용자를 찾을 수 없습니다.")
-
-        if update_data.username is not None:
-            user.username = update_data.username
-        if update_data.email is not None:
-            user.email = update_data.email
-
-        try:
-            await db.commit()
-            await db.refresh(user)
-        except Exception as e:
-            await db.rollback()
-            raise ServerException(f"사용자 정보 수정 중 오류가 발생했습니다: {str(e)}")
-
-        return {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email
-        }
-
-    @staticmethod
-    async def get_user_by_id(user_id: int, db: AsyncSession) -> dict:
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-
-        if not user:
-            raise NotFoundException("사용자를 찾을 수 없습니다.")
-
-        return {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "created_at": user.created_at,
-            "updated_at": user.updated_at
         }

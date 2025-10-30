@@ -111,14 +111,14 @@ class UserService:
             raise UnauthorizedException("잘못된 사용자명 또는 비밀번호입니다.")
 
         access_payload = {
-            "sub": user.username,
+            "sub": str(user.user_seq),
             "type": "access",
             "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         }
         access_token = jwt.encode(access_payload, SECRET_KEY, algorithm=ALGORITHM)
 
         refresh_payload = {
-            "sub": user.username,
+            "sub": str(user.user_seq),
             "type": "refresh",
             "exp": datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
         }

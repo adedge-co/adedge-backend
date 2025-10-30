@@ -2,25 +2,22 @@ from sqlalchemy import text, inspect
 from app.core.database import engine, Base
 from config import settings
 
+
 class AutoMigration:
     def __init__(self):
         self.engine = engine
         self.metadata = Base.metadata
-    
+
     async def check_and_update_schema(self):
-        if settings.active_profile == "production":
-            print("⚠️ 프로덕션 환경에서는 자동 스키마 업데이트를 사용할 수 없습니다.")
-            return False
-        
         try:
             print("🔍 스키마 변경사항 확인 중...")
-            
+
             async with self.engine.begin() as conn:
                 result = await conn.execute(text("SHOW TABLES"))
                 existing_tables = [row[0] for row in result.fetchall()]
-                
+
                 defined_tables = list(self.metadata.tables.keys())
-                
+
                 for table_name in defined_tables:
                     if table_name not in existing_tables:
                         print(f"📝 새 테이블 생성: {table_name}")
@@ -28,16 +25,16 @@ class AutoMigration:
                     else:
                         # 기존 테이블의 컬럼 변경사항 확인
                         await self._check_column_changes(conn, table_name)
-                
+
                 await conn.run_sync(self.metadata.create_all)
-                
+
             print("✅ 스키마 업데이트 완료")
             return True
-            
+
         except Exception as e:
             print(f"❌ 스키마 업데이트 실패: {e}")
             return False
-    
+
     async def _create_table(self, conn, table_name):
         try:
             table = self.metadata.tables[table_name]
@@ -45,7 +42,7 @@ class AutoMigration:
             print(f"✅ 테이블 생성 완료: {table_name}")
         except Exception as e:
             print(f"❌ 테이블 생성 실패 {table_name}: {e}")
-    
+
     async def _check_column_changes(self, conn, table_name):
         try:
             # 현재 테이블 스키마 조회
@@ -79,19 +76,19 @@ class AutoMigration:
                                 print(f"❌ 컬럼 삭제 실패 {table_name}.{db_col}: {drop_err}")
         except Exception as e:
             print(f"❌ 컬럼 변경사항 확인 실패 {table_name}: {e}")
-    
+
     async def _add_column(self, conn, table_name, column):
         try:
             column_type = str(column.type.compile(conn.dialect))
             nullable = "NULL" if column.nullable else "NOT NULL"
             default = f"DEFAULT {column.default.arg}" if column.default else ""
-            
+
             sql = f"ALTER TABLE {table_name} ADD COLUMN {column.name} {column_type} {nullable} {default}"
             await conn.execute(text(sql))
             print(f"✅ 컬럼 추가 완료: {table_name}.{column.name}")
         except Exception as e:
             print(f"❌ 컬럼 추가 실패 {table_name}.{column.name}: {e}")
-    
+
     async def _check_column_type_change(self, conn, table_name, column, existing_type):
         try:
             new_type = str(column.type.compile(conn.dialect))
@@ -100,10 +97,9 @@ class AutoMigration:
         except Exception as e:
             print(f"❌ 컬럼 타입 변경 확인 실패 {table_name}.{column.name}: {e}")
 
+
 auto_migration = AutoMigration()
+
 
 async def auto_update_schema():
     return await auto_migration.check_and_update_schema()
-
-
-

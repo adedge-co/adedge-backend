@@ -5,10 +5,6 @@ from .base_util import BaseUtil
 T = TypeVar('T')
 
 class BaseResponse(BaseModel, Generic[T]):
-    """
-    일관된 API 응답을 위한 기본 클래스
-    Java의 BaseResponse와 동일한 구조
-    """
     status: int
     message: str
     data: Optional[T] = None

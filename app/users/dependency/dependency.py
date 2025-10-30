@@ -3,7 +3,6 @@ from passlib.context import CryptContext
 from app.core.database import AsyncSessionLocal
 from config import settings
 
-# 환경 변수로부터만 로드 (코드에 값 노출 금지)
 SECRET_KEY = settings.get_env("SECRET_KEY")
 ALGORITHM = settings.get_env("JWT_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(settings.get_env("ACCESS_TOKEN_EXPIRE_MINUTES"))

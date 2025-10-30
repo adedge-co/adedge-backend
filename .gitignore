@@ -53,6 +53,7 @@ Thumbs.db
 config/local.env
 config/test.env
 config/default.env
+config/production.env
 
 # Logs
 *.log

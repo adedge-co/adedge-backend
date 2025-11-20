@@ -23,6 +23,7 @@ from app.core.exceptions import (
     ServerException,
     UnauthorizedException
 )
+from app.core.redis import RedisClient
 
 
 class UserService:
@@ -96,6 +97,14 @@ class UserService:
             "exp": datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
         }
         refresh_token = jwt.encode(refresh_payload, SECRET_KEY, algorithm=ALGORITHM)
+
+        try:
+            redis_client = await RedisClient.get_client()
+            redis_key = f"auth:white:{user.user_seq}"
+            ttl_seconds = ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            await redis_client.setex(redis_key, ttl_seconds, access_token)
+        except Exception as e:
+            raise ServerException(f"사용자 생성 중 오류가 발생했습니다: {str(e)}")
 
         return {
             "access_token": access_token,

@@ -8,18 +8,21 @@ class UserLogin(BaseModel):
 
 
 class PersonalSignupRequest(BaseModel):
+    user_name: str
+    phone_number: str
     user_id: str
     password: str
-    user_name: str
-    resident_number: str
-    address: Optional[str] = None
-    phone_number: Optional[str] = None
+    password_confirm: str
 
 
 class CorporateSignupRequest(BaseModel):
-    user_id: str
-    password: str
     business_name: str
     business_number: str
-    address: Optional[str] = None
-    phone_number: Optional[str] = None
+    phone_number: str
+    user_id: str
+    password: str
+    password_confirm: str
+
+
+class UseridDuplicateRequest(BaseModel):
+    user_id: str

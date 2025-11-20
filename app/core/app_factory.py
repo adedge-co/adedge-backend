@@ -5,6 +5,7 @@ from app.users.routers.router import router
 from app.core.auto_migration import auto_update_schema
 from app.base.base_response import BaseResponse
 from app.core.security import JWTAuthMiddleware
+from app.core.redis import RedisClient
 
 
 def create_app() -> FastAPI:
@@ -20,9 +21,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         JWTAuthMiddleware,
         allow_paths=(
-            "/auth/login/",
-            "/auth/signup/personal",
-            "/auth/signup/corporate",
+            "/auth/**",
             "/actuator/health",
             "/docs"
         ),
@@ -40,6 +39,14 @@ def create_app() -> FastAPI:
         print("🔄 자동 스키마 업데이트 시작...")
         await auto_update_schema()
 
+        # Redis 연결 초기화
+        try:
+            await RedisClient.get_client()
+            if settings.debug:
+                print(f"✅ Redis 연결 성공: {settings.redis_host}:{settings.redis_port}")
+        except Exception as e:
+            print(f"⚠️ Redis 연결 실패: {str(e)}")
+
         if settings.debug:
             print(f"🚀 AdEdge Backend 시작됨 - 환경: {settings.active_profile}")
             print(f"📊 데이터베이스: {settings.database_url}")
@@ -47,5 +54,12 @@ def create_app() -> FastAPI:
             print(f"📝 로그 레벨: {settings.log_level}")
         else:
             print(f"AdEdge Backend started - Environment: {settings.active_profile}")
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        # Redis 연결 종료
+        await RedisClient.close()
+        if settings.debug:
+            print("🔌 Redis 연결 종료됨")
 
     return app

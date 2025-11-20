@@ -47,6 +47,29 @@ class Settings:
     def log_level(self) -> str:
         return os.getenv('LOG_LEVEL', 'INFO')
     
+    @property
+    def redis_host(self) -> str:
+        host = self.get_env('REDIS_HOST')
+        if not host:
+            raise ValueError(f"REDIS_HOST이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return host
+    
+    @property
+    def redis_port(self) -> int:
+        port = self.get_env('REDIS_PORT')
+        if not port:
+            raise ValueError(f"REDIS_PORT이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return int(port)
+    
+    @property
+    def redis_password(self) -> Optional[str]:
+        return self.get_env('REDIS_PASSWORD')
+    
+    @property
+    def redis_db(self) -> int:
+        db = self.get_env('REDIS_DB', '0')
+        return int(db)
+    
     def get_env(self, key: str, default: Optional[str] = None) -> Optional[str]:
         return os.getenv(key, default)
     

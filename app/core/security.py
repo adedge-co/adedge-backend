@@ -19,7 +19,7 @@ class JWTAuthMiddleware:
             return
 
         path = scope.get("path", "")
-        if path in self.allow_paths or path.startswith("/docs") or path.startswith("/openapi"):
+        if path in self.allow_paths or path.startswith("/docs") or path.startswith("/openapi") or path.startswith("/auth"):
             await self.app(scope, receive, send)
             return
 

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from app.users.schema.schemas import (
     UserLogin, PersonalSignupRequest,
-    CorporateSignupRequest, UseridDuplicateRequest,
+    CorporateSignupRequest, UseridDuplicateRequest, ReissueTokenRequest,
 )
 from app.base.base_response import BaseResponse
 from app.core.connection_config import get_db
@@ -11,7 +11,8 @@ from app.users.services.user_service import (
     create_personal_user,
     create_corporate_user,
     login_user,
-    user_id_duplicate
+    user_id_duplicate,
+    reissue_token
 )
 
 router = APIRouter()
@@ -27,6 +28,12 @@ async def signup_personal(request: PersonalSignupRequest, db: AsyncSession = Dep
 async def signup_corporate(request: CorporateSignupRequest, db: AsyncSession = Depends(get_db)):
     await create_corporate_user(request, db)
     return BaseResponse.of_success(status.HTTP_201_CREATED, "SUCCESS")
+
+
+@router.post("/auth/reissue-token", response_model=BaseResponse[dict])
+async def reissue_token_endpoint(request: ReissueTokenRequest, db: AsyncSession = Depends(get_db)):
+    result = await reissue_token(request, db)
+    return BaseResponse.of_success(status.HTTP_200_OK, result)
 
 
 @router.post("/auth/login", response_model=BaseResponse[dict])

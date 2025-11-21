@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, DateTime
-from app.core.database import Base
+from app.core.connection_config import Base
 
 class BaseTimeEntity(Base):
     __abstract__ = True

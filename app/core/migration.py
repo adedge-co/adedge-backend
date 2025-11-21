@@ -1,5 +1,5 @@
-from sqlalchemy import text, inspect
-from app.core.database import engine, Base
+from sqlalchemy import text
+from app.core.connection_config import engine, Base
 from config import settings
 
 
@@ -45,14 +45,12 @@ class AutoMigration:
 
     async def _check_column_changes(self, conn, table_name):
         try:
-            # 현재 테이블 스키마 조회
             result = await conn.execute(text(f"DESCRIBE {table_name}"))
             existing_columns = {row[0]: row[1] for row in result.fetchall()}
 
             if table_name in self.metadata.tables:
                 table = self.metadata.tables[table_name]
 
-                # 1) 모델에는 있는데 DB엔 없는 컬럼 → ADD
                 for column in table.columns:
                     if column.name not in existing_columns:
                         print(f"📝 새 컬럼 추가: {table_name}.{column.name}")

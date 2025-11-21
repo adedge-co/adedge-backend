@@ -1,6 +1,6 @@
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
-from app.core.database import AsyncSessionLocal
+from app.core.connection_config import AsyncSessionLocal
 from config import settings
 
 SECRET_KEY = settings.get_env("SECRET_KEY")

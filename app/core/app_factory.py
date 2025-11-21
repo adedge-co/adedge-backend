@@ -1,4 +1,5 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Depends
+from fastapi.security.api_key import APIKeyHeader
 from config import settings
 from app.core.exception import setup_exception_handlers
 from app.core.jwt_filter import JWTAuthMiddleware
@@ -9,11 +10,14 @@ from app.core.redis_config import RedisClient
 
 
 def create_app() -> FastAPI:
+    auth_header = APIKeyHeader(name="Authorization")
+
     app = FastAPI(
         title="AdEdge Backend API",
         description=f"AdEdge Backend API - {settings.active_profile.upper()} Environment",
         debug=settings.debug,
         version="1.0.0",
+        dependencies=[Depends(auth_header)],
     )
 
     setup_exception_handlers(app)

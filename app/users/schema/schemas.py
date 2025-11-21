@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional
 
 
 class UserLogin(BaseModel):
@@ -13,6 +12,10 @@ class PersonalSignupRequest(BaseModel):
     user_id: str
     password: str
     password_confirm: str
+
+
+class ReissueTokenRequest(BaseModel):
+    refresh_token: str
 
 
 class CorporateSignupRequest(BaseModel):

@@ -18,5 +18,3 @@ async def get_db():
         yield session
         await session.commit()
 
-
-

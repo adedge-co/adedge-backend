@@ -1,11 +1,11 @@
 from fastapi import FastAPI, status
 from config import settings
-from app.core.middleware import setup_exception_handlers
+from app.core.exception import setup_exception_handlers
+from app.core.jwt_filter import JWTAuthMiddleware
 from app.users.routers.router import router
-from app.core.auto_migration import auto_update_schema
+from app.core.migration import auto_update_schema
 from app.base.base_response import BaseResponse
-from app.core.security import JWTAuthMiddleware
-from app.core.redis import RedisClient
+from app.core.redis_config import RedisClient
 
 
 def create_app() -> FastAPI:
@@ -39,7 +39,6 @@ def create_app() -> FastAPI:
         print("🔄 자동 스키마 업데이트 시작...")
         await auto_update_schema()
 
-        # Redis 연결 초기화
         try:
             await RedisClient.get_client()
             if settings.debug:
@@ -57,7 +56,6 @@ def create_app() -> FastAPI:
 
     @app.on_event("shutdown")
     async def shutdown_event():
-        # Redis 연결 종료
         await RedisClient.close()
         if settings.debug:
             print("🔌 Redis 연결 종료됨")

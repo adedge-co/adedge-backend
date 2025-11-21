@@ -1,11 +1,9 @@
 from typing import Iterable
-
 from fastapi import Request, Header
 from fastapi.responses import JSONResponse
-
 from app.users.dependency.dependency import SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
-from app.core.exceptions import UnauthorizedException, ServerException
+from app.core.exception import UnauthorizedException, ServerException
 
 
 class JWTAuthMiddleware:
@@ -45,7 +43,6 @@ class JWTAuthMiddleware:
             return
 
 
-# 통합 유틸/의존성: 토큰 또는 Authorization 헤더에서 user_seq 추출
 async def get_user_seq(authorization: str = Header(None), token: str | None = None) -> int:
     try:
         if token is None:
@@ -60,3 +57,4 @@ async def get_user_seq(authorization: str = Header(None), token: str | None = No
         return int(sub)
     except Exception as e:
         raise ServerException(f"토큰 파싱 실패: {e}")
+

@@ -10,7 +10,7 @@ from app.core.redis_config import RedisClient
 
 
 def create_app() -> FastAPI:
-    auth_header = APIKeyHeader(name="Authorization")
+    auth_header = APIKeyHeader(name="Authorization", auto_error=False)
 
     app = FastAPI(
         title="AdEdge Backend API",

@@ -6,7 +6,7 @@ from app.base.base_response import BaseResponse
 router = APIRouter(prefix="/sms", tags=["SMS"])
 
 
-@router.post("/verification/send", response_model=BaseResponse[dict])
+@router.post("/send", response_model=BaseResponse[dict])
 async def send_verification_code_endpoint(request: SendVerificationCodeRequest):
     """
     인증번호 발송
@@ -18,7 +18,7 @@ async def send_verification_code_endpoint(request: SendVerificationCodeRequest):
     return BaseResponse.of_success(status.HTTP_200_OK, {"message": "인증번호가 발송되었습니다."})
 
 
-@router.post("/verification/verify", response_model=BaseResponse[dict])
+@router.post("/verify", response_model=BaseResponse[dict])
 async def verify_code_endpoint(request: VerifyCodeRequest):
     """
     인증번호 검증

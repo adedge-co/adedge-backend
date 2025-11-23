@@ -4,6 +4,7 @@ from config import settings
 from app.core.exception import setup_exception_handlers
 from app.core.jwt_filter import JWTAuthMiddleware
 from app.users.routers.router import router
+from app.sms.routers.router import router as sms_router
 from app.core.migration import auto_update_schema
 from app.base.base_response import BaseResponse
 from app.core.redis_config import RedisClient
@@ -26,12 +27,14 @@ def create_app() -> FastAPI:
         JWTAuthMiddleware,
         allow_paths=(
             "/auth/**",
+            "/sms/**",
             "/actuator/health",
             "/docs"
         ),
     )
 
     app.include_router(router)
+    app.include_router(sms_router)
 
     @app.get("/actuator/health", response_model=BaseResponse[dict], status_code=status.HTTP_200_OK)
     async def health_check():

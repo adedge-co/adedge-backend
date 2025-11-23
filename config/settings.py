@@ -70,6 +70,27 @@ class Settings:
         db = self.get_env('REDIS_DB', '0')
         return int(db)
     
+    @property
+    def solapi_api_key(self) -> str:
+        api_key = self.get_env('SOLAPI_API_KEY')
+        if not api_key:
+            raise ValueError(f"SOLAPI_API_KEY이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return api_key
+    
+    @property
+    def solapi_api_secret(self) -> str:
+        api_secret = self.get_env('SOLAPI_API_SECRET')
+        if not api_secret:
+            raise ValueError(f"SOLAPI_API_SECRET이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return api_secret
+    
+    @property
+    def solapi_from_number(self) -> str:
+        from_number = self.get_env('SOLAPI_FROM_NUMBER')
+        if not from_number:
+            raise ValueError(f"SOLAPI_FROM_NUMBER이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return from_number
+    
     def get_env(self, key: str, default: Optional[str] = None) -> Optional[str]:
         return os.getenv(key, default)
     

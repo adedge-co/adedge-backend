@@ -1,5 +1,6 @@
 from fastapi import FastAPI, status, Depends
 from fastapi.security.api_key import APIKeyHeader
+from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from app.core.exception import setup_exception_handlers
 from app.core.jwt_filter import JWTAuthMiddleware
@@ -22,6 +23,15 @@ def create_app() -> FastAPI:
     )
 
     setup_exception_handlers(app)
+
+    # CORS 설정
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     app.add_middleware(
         JWTAuthMiddleware,

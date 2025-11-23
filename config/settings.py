@@ -91,6 +91,14 @@ class Settings:
             raise ValueError(f"SOLAPI_FROM_NUMBER이 설정되지 않았습니다. ({self.active_profile} 환경)")
         return from_number
     
+    @property
+    def cors_origins(self) -> list[str]:
+        """CORS 허용 origin 목록. 쉼표로 구분된 문자열을 리스트로 변환"""
+        origins_str = self.get_env('CORS_ORIGINS', '*')
+        if origins_str == '*':
+            return ['*']
+        return [origin.strip() for origin in origins_str.split(',') if origin.strip()]
+    
     def get_env(self, key: str, default: Optional[str] = None) -> Optional[str]:
         return os.getenv(key, default)
     

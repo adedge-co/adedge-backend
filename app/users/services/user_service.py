@@ -39,6 +39,7 @@ async def create_personal_user(request: PersonalSignupRequest, db: AsyncSession)
         account_type="PERSONAL",
         user_name=request.user_name,
         phone_number=request.phone_number,
+        email=request.email,
         user_id=request.user_id,
         hashed_password=pwd_context.hash(request.password)
     )
@@ -63,6 +64,7 @@ async def create_corporate_user(request: CorporateSignupRequest, db: AsyncSessio
         business_name=request.business_name,
         business_number=request.business_number,
         phone_number=request.phone_number,
+        email=request.email,
         user_id=request.user_id,
         hashed_password=pwd_context.hash(request.password),
     )

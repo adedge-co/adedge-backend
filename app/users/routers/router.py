@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, status
 from app.users.schema.schemas import (
     UserLogin, PersonalSignupRequest, CorporateSignupRequest,
     UseridDuplicateRequest, ReissueTokenRequest, EmailDuplicateRequest,
-    SendEmailVerificationRequest, VerifyEmailCodeRequest,
 )
 from app.base.base_response import BaseResponse
 from app.core.connection_config import get_db

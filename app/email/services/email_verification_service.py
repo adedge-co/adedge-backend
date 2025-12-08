@@ -1,8 +1,11 @@
 import secrets
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.core.redis_config import RedisClient
 from app.core.exception import BadRequestException, UnauthorizedException, ServerException
-from app.users.services.email_client import EmailClient
-from app.users.services.email_templates import get_verification_email_html
+from app.email.services.email_client import EmailClient
+from app.email.services.email_templates import get_verification_email_html
+from app.users.models.user import User
 
 
 def generate_verification_code() -> str:
@@ -53,16 +56,19 @@ async def send_verification_email(email: str) -> None:
         raise ServerException(f"인증번호 이메일 발송 중 오류가 발생했습니다: {str(e)}")
 
 
-async def verify_email_code(email: str, verification_code: str) -> bool:
+async def verify_email_code(email: str, verification_code: str, db: AsyncSession) -> dict:
     """
     이메일 인증번호 검증
     
     Args:
         email: 인증번호를 받은 이메일 주소
         verification_code: 인증번호
+        db: 데이터베이스 세션
         
     Returns:
-        bool: 검증 성공 여부
+        dict: 검증 결과 및 사용자 정보
+            - message: 성공 메시지
+            - user_id: 해당 이메일로 가입된 사용자가 있으면 user_id, 없으면 None
     """
     if not email or not verification_code:
         raise BadRequestException("이메일과 인증번호를 모두 입력해주세요.")
@@ -83,7 +89,15 @@ async def verify_email_code(email: str, verification_code: str) -> bool:
 
         # 검증 성공 시 Redis에서 삭제 (1회용)
         await redis_client.delete(redis_key)
-        return True
+
+        # 해당 이메일로 가입된 사용자 조회
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+
+        if user:
+            return {"message": "인증번호가 확인되었습니다.", "user_id": user.user_id}
+        else:
+            return {"message": "SUCCESS"}
 
     except UnauthorizedException:
         raise

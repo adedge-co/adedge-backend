@@ -16,11 +16,11 @@ class EmailClient:
         self.use_tls = settings.smtp_use_tls
 
     async def send_email(
-        self,
-        to_email: str,
-        subject: str,
-        html_content: str,
-        text_content: Optional[str] = None
+            self,
+            to_email: str,
+            subject: str,
+            html_content: str,
+            text_content: Optional[str] = None
     ) -> None:
         """
         이메일 전송
@@ -65,7 +65,7 @@ class EmailClient:
                     use_tls=False,
                     start_tls=self.use_tls
                 )
-            
+
             await smtp.connect()
             await smtp.login(self.smtp_user, self.smtp_password)
             await smtp.send_message(message)

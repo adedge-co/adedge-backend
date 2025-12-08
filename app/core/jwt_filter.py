@@ -18,7 +18,25 @@ class JWTAuthMiddleware:
             return
 
         path = scope.get("path", "")
-        if path in self.allow_paths or path.startswith("/docs") or path.startswith("/openapi") or path.startswith("/auth"):
+        # allow_paths에 있는 경로 또는 특정 경로로 시작하는 경우 통과
+        if path in self.allow_paths:
+            await self.app(scope, receive, send)
+            return
+        
+        # 와일드카드 패턴 처리: /auth/** 또는 /sms/** 같은 패턴
+        for allowed_path in self.allow_paths:
+            if allowed_path.endswith("/**"):
+                prefix = allowed_path[:-3]  # /** 제거
+                if path.startswith(prefix):
+                    await self.app(scope, receive, send)
+                    return
+        
+        # 기본 허용 경로들
+        if (path.startswith("/docs") or 
+            path.startswith("/openapi") or 
+            path.startswith("/auth") or 
+            path.startswith("/sms") or
+            path.startswith("/actuator")):
             await self.app(scope, receive, send)
             return
 

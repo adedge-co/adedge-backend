@@ -31,3 +31,7 @@ class CorporateSignupRequest(BaseModel):
 
 class UseridDuplicateRequest(BaseModel):
     user_id: str = Field(..., description="중복 확인할 사용자 ID", example="user123")
+
+
+class EmailDuplicateRequest(BaseModel):
+    email: str = Field(..., description="중복 확인할 사용자 EMAIL", example="user123@gmail.com")

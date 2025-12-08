@@ -5,7 +5,7 @@ from app.users.models.user import User
 from app.users.schema.schemas import (
     UserLogin,
     PersonalSignupRequest,
-    CorporateSignupRequest, UseridDuplicateRequest, ReissueTokenRequest,
+    CorporateSignupRequest, UseridDuplicateRequest, ReissueTokenRequest, EmailDuplicateRequest,
 )
 from app.users.dependency.dependency import pwd_context
 from datetime import datetime, timedelta
@@ -179,3 +179,11 @@ async def user_id_duplicate(request: UseridDuplicateRequest, db: AsyncSession) -
 
     if user:
         raise BadRequestException(f"이미 사용 중인 사용자 ID입니다. '{request.user_id}'는 다른 사용자가 사용 중입니다.")
+
+
+async def email_duplicate(request: EmailDuplicateRequest, db: AsyncSession) -> None:
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+
+    if user:
+        raise BadRequestException(f"이미 사용 중인 사용자 이메일입니다. '{request.email}'는 다른 사용자가 사용 중입니다.")

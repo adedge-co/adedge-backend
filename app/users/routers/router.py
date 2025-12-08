@@ -1,18 +1,16 @@
 from fastapi import APIRouter, Depends, status
 
 from app.users.schema.schemas import (
-    UserLogin, PersonalSignupRequest,
-    CorporateSignupRequest, UseridDuplicateRequest, ReissueTokenRequest,
+    UserLogin, PersonalSignupRequest, CorporateSignupRequest,
+    UseridDuplicateRequest, ReissueTokenRequest, EmailDuplicateRequest,
+    SendEmailVerificationRequest, VerifyEmailCodeRequest,
 )
 from app.base.base_response import BaseResponse
 from app.core.connection_config import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.users.services.user_service import (
-    create_personal_user,
-    create_corporate_user,
-    login_user,
-    user_id_duplicate,
-    reissue_token
+    create_personal_user, create_corporate_user, login_user,
+    user_id_duplicate, reissue_token, email_duplicate
 )
 
 router = APIRouter(tags=["USER"])
@@ -76,4 +74,16 @@ async def user_id_duplicate_check(request: UseridDuplicateRequest, db: AsyncSess
     이미 사용 중인 ID인 경우 에러를 반환합니다.
     """
     await user_id_duplicate(request, db)
+    return BaseResponse.of_success(status.HTTP_200_OK, "SUCCESS")
+
+
+@router.post("/auth/user_email/duplicate", response_model=BaseResponse[dict])
+async def user_id_duplicate_check(request: EmailDuplicateRequest, db: AsyncSession = Depends(get_db)):
+    """
+    사용자 이메일 중복 확인
+
+    회원가입 전 사용자 이메일의 중복 여부를 확인합니다.
+    이미 사용 중인 이메일인 경우 에러를 반환합니다.
+    """
+    await email_duplicate(request, db)
     return BaseResponse.of_success(status.HTTP_200_OK, "SUCCESS")

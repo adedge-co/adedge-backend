@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, status
 from app.users.schema.schemas import (
     UserLogin, PersonalSignupRequest, CorporateSignupRequest,
     UseridDuplicateRequest, ReissueTokenRequest, EmailDuplicateRequest,
+    SendEmailVerificationRequest, VerifyEmailCodeRequest,
 )
 from app.base.base_response import BaseResponse
 from app.core.connection_config import get_db
@@ -86,3 +87,29 @@ async def user_id_duplicate_check(request: EmailDuplicateRequest, db: AsyncSessi
     """
     await email_duplicate(request, db)
     return BaseResponse.of_success(status.HTTP_200_OK, "SUCCESS")
+
+
+@router.post("/auth/email/send", response_model=BaseResponse[dict])
+async def send_email_verification(request: SendEmailVerificationRequest):
+    """
+    이메일 인증번호 발송
+    
+    이메일 주소를 받아서 6자리 인증번호를 생성하고 이메일로 발송합니다.
+    인증번호는 3분간 유효합니다.
+    """
+    from app.users.services.email_verification_service import send_verification_email
+    await send_verification_email(request.email)
+    return BaseResponse.of_success(status.HTTP_200_OK, {"message": "인증번호가 발송되었습니다."})
+
+
+@router.post("/auth/email/verify", response_model=BaseResponse[dict])
+async def verify_email_code_endpoint(request: VerifyEmailCodeRequest):
+    """
+    이메일 인증번호 검증
+    
+    이메일 주소와 인증번호를 받아서 검증합니다.
+    검증 성공 시 인증번호는 삭제되어 재사용할 수 없습니다.
+    """
+    from app.users.services.email_verification_service import verify_email_code
+    await verify_email_code(request.email, request.verification_code)
+    return BaseResponse.of_success(status.HTTP_200_OK, {"message": "인증번호가 확인되었습니다."})

@@ -99,6 +99,46 @@ class Settings:
             return ['*']
         return [origin.strip() for origin in origins_str.split(',') if origin.strip()]
     
+    @property
+    def smtp_host(self) -> str:
+        host = self.get_env('SMTP_HOST')
+        if not host:
+            raise ValueError(f"SMTP_HOST이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return host
+    
+    @property
+    def smtp_port(self) -> int:
+        port = self.get_env('SMTP_PORT')
+        if not port:
+            raise ValueError(f"SMTP_PORT이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return int(port)
+    
+    @property
+    def smtp_user(self) -> str:
+        user = self.get_env('SMTP_USER')
+        if not user:
+            raise ValueError(f"SMTP_USER이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return user
+    
+    @property
+    def smtp_password(self) -> str:
+        password = self.get_env('SMTP_PASSWORD')
+        if not password:
+            raise ValueError(f"SMTP_PASSWORD이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return password
+    
+    @property
+    def smtp_from_email(self) -> str:
+        from_email = self.get_env('SMTP_FROM_EMAIL')
+        if not from_email:
+            raise ValueError(f"SMTP_FROM_EMAIL이 설정되지 않았습니다. ({self.active_profile} 환경)")
+        return from_email
+    
+    @property
+    def smtp_use_tls(self) -> bool:
+        use_tls = self.get_env('SMTP_USE_TLS', 'True')
+        return use_tls.lower() in ('true', '1', 'yes')
+    
     def get_env(self, key: str, default: Optional[str] = None) -> Optional[str]:
         return os.getenv(key, default)
     

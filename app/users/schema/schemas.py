@@ -35,3 +35,12 @@ class UseridDuplicateRequest(BaseModel):
 
 class EmailDuplicateRequest(BaseModel):
     email: str = Field(..., description="중복 확인할 사용자 EMAIL", example="user123@gmail.com")
+
+
+class SendEmailVerificationRequest(BaseModel):
+    email: str = Field(..., description="인증번호를 받을 이메일 주소", example="user@example.com")
+
+
+class VerifyEmailCodeRequest(BaseModel):
+    email: str = Field(..., description="인증번호를 받은 이메일 주소", example="user@example.com")
+    verification_code: str = Field(..., description="인증번호", example="123456", min_length=6, max_length=6)

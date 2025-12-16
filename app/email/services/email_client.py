@@ -73,3 +73,4 @@ class EmailClient:
 
         except Exception as e:
             raise ServerException(f"이메일 전송 중 오류가 발생했습니다: {str(e)}")
+

@@ -31,3 +31,4 @@ async def verify_code_endpoint(request: VerifyEmailCodeRequest, db: AsyncSession
     """
     result = await verify_email_code(request.email, request.verification_code, db)
     return BaseResponse.of_success(status.HTTP_200_OK, result)
+

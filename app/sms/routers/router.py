@@ -1,7 +1,9 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.sms.schema.schemas import SendVerificationCodeRequest, VerifyCodeRequest
 from app.sms.services.verification_service import send_verification_code, verify_code
 from app.base.base_response import BaseResponse
+from app.core.connection_config import get_db
 
 router = APIRouter(prefix="/sms", tags=["SMS"])
 
@@ -19,12 +21,13 @@ async def send_verification_code_endpoint(request: SendVerificationCodeRequest):
 
 
 @router.post("/verify", response_model=BaseResponse[dict])
-async def verify_code_endpoint(request: VerifyCodeRequest):
+async def verify_code_endpoint(request: VerifyCodeRequest, db: AsyncSession = Depends(get_db)):
     """
     인증번호 검증
     
     전화번호와 인증번호를 받아서 검증합니다.
     검증 성공 시 인증번호는 삭제되어 재사용할 수 없습니다.
+    해당 전화번호로 회원가입된 사용자가 있으면 user_id를 반환하고, 없으면 SUCCESS를 반환합니다.
     """
-    await verify_code(request.phone_number, request.verification_code)
-    return BaseResponse.of_success(status.HTTP_200_OK, {"message": "인증번호가 확인되었습니다."})
+    result = await verify_code(request.phone_number, request.verification_code, db)
+    return BaseResponse.of_success(status.HTTP_200_OK, result)

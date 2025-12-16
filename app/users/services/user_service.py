@@ -35,6 +35,11 @@ async def create_personal_user(request: PersonalSignupRequest, db: AsyncSession)
     if existing_user:
         raise ConflictException(f"이미 등록된 사용자입니다. 사용자 ID '{request.user_id}'는 이미 사용 중입니다.")
 
+    result = await db.execute(select(User).where(User.phone_number == request.phone_number))
+    existing_user = result.scalar_one_or_none()
+    if existing_user:
+        raise ConflictException(f"이미 등록된 사용자입니다. 사용자 전화번호 '{request.phone_number}'는 이미 사용 중입니다.")
+
     new_user = User(
         account_type="PERSONAL",
         user_name=request.user_name,
@@ -58,6 +63,16 @@ async def create_corporate_user(request: CorporateSignupRequest, db: AsyncSessio
     existing_user = result.scalar_one_or_none()
     if existing_user:
         raise ConflictException(f"이미 등록된 사용자입니다. 사용자 ID '{request.user_id}'는 이미 사용 중입니다.")
+
+    result = await db.execute(select(User).where(User.phone_number == request.phone_number))
+    existing_user = result.scalar_one_or_none()
+    if existing_user:
+        raise ConflictException(f"이미 등록된 사용자입니다. 사용자 전화번호 '{request.phone_number}'는 이미 사용 중입니다.")
+
+    result = await db.execute(select(User).where(User.business_number == request.business_number))
+    existing_user = result.scalar_one_or_none()
+    if existing_user:
+        raise ConflictException(f"이미 등록된 사용자입니다. 사용자 사업자 번호 '{request.business_number}'는 이미 사용 중입니다.")
 
     new_user = User(
         account_type="CORPORATE",

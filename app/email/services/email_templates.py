@@ -71,3 +71,4 @@ def get_verification_email_html(verification_code: str) -> str:
 </body>
 </html>
 """
+
